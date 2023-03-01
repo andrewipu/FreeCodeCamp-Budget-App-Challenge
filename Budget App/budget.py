@@ -12,7 +12,6 @@ class Category:
 
     def deposit(self, amount, description=""):
         self.ledger.append({"amount": amount, "description": description})
-        
 
 
     def get_balance(self):
@@ -21,11 +20,13 @@ class Category:
             balance += item["amount"]
         return balance
 
+
     def check_funds (self, amount):
         if self.get_balance() >= amount:
             return True
         else:
             return False
+
 
     def withdraw (self, amount, description=""):
         if self.check_funds(amount):
@@ -34,19 +35,7 @@ class Category:
         else:
             return False
 
-    #get initial deposit and return
-    def get_deposit (self):
-        for item in self.ledger:
-            if "deposit" in item["description"]:
-                return item["amount"]
 
-            elif "Transfer from" in item["description"]:
-                return item["amount"]
-            else:
-                return None
-
-
-    #def transfer (self, amount, Category):
     def transfer (self, amount, Category):
         if self.check_funds(amount):
             self.withdraw(amount, description="Transfer to " + str(Category.element_category))
@@ -54,6 +43,7 @@ class Category:
             return True
         else:
             return False 
+            
 
     #Method that converts budget object to string
     def __str__(self):
@@ -76,53 +66,40 @@ class Category:
         #return Total
         total = str(self.get_balance())
         ledger_out += "\nTotal: " + total
-        #print(total)
-        #ledger_out += "\nTotal: " + str(self.get_balance())
 
 
         return ledger_out
+    
+    def get_withdrawls(self):
+        withdraw = 0
+        for item in self.ledger:
+            if item["amount"] < 0:
+                withdraw += item["amount"]
+                posi_withdraw = abs(withdraw)
+                return posi_withdraw
+        else:
+            return None
+    
 
-        
-def create_spend_chart(categories):
-    #categories = categories
-    chart_title = "Percentage spent by category"
-    chart_print = chart_title
+def create_spend_chart(categories): 
+    title = "Percentage spent by category"
     horiz_bar = "-" * 10
     horiz_bar = horiz_bar.rjust(14)
     cat_name = []
     vertical_categories = []
 
-    #loop to grab total of each categories
-    for i in categories:
-        if i.element_category == "Food":
-            food_totals = str(i.get_balance())
-            food_initial_deposit = i.get_deposit()
-            #print(food_initial_deposit)
-            continue
-        elif i.element_category == "Clothing":
-            clothing_totals = str(i.get_balance())
-            clothing_initial_deposit = i.get_deposit()
-            #print(clothing_initial_deposit)
-            continue
-        elif i.element_category == "Auto":
-            auto_totals = str(i.get_balance())
-            auto_initial_deposit = i.get_deposit()
-            #print(auto_initial_deposit)
-            continue
-        elif i.element_category == "Entertainment":
-            entertainment_totals = str(i.get_balance())
-            entertainment_initial_deposit = i.get_deposit()
-            #print(entertainment_initial_deposit)
-            continue
-        else:
-            break
-            
-    #print(food_totals)
+    #Calculate total withdrawals
+    withdrw_total = 0
+    for category in categories:
+        for item in category.ledger:
+            if item["amount"] < 0:
+                withdrw_total += item["amount"]
+                positive_total = abs(withdrw_total)
+
     
     #loop to grab category name
     for i in categories:
         cat_name.append(i.element_category)
-    #print(cat_name)
 
     #produce the categories vertically
     for cat in cat_name:
@@ -152,46 +129,46 @@ def create_spend_chart(categories):
         output += '\n'
 
     
+    c1_percent = (categories[0].get_withdrawls() / positive_total) * 100
+    c1_percent = int(f'{c1_percent:.0f}')
+    c2_percent = (categories[1].get_withdrawls() / positive_total) * 100
+    c2_percent = int(f'{c2_percent:.0f}')
+    c3_percent = (categories[2].get_withdrawls() / positive_total) * 100
+    c3_percent = int(f'{c3_percent:.0f}')
+
+
+
     #print o's
-    food_percent = (food_initial_deposit - float(food_totals)) / food_initial_deposit * 100
-    food_percent = int(f'{food_percent:.0f}')
-    #print(food_percent)
-    clothing_percent = (clothing_initial_deposit - float(clothing_totals)) / clothing_initial_deposit * 100
-    clothing_percent = int(f'{clothing_percent:.0f}')
-    #print(clothing_percent)
-    auto_percent = (auto_initial_deposit - float(auto_totals)) / auto_initial_deposit * 100
-    #print(auto_percent)
-    #entertainment_percent = (entertainment_initial_deposit - float(entertainment_totals)) / entertainment_initial_deposit * 100
-    #print(entertainment_percent)
     percentage_col = ""
     
-    print (chart_print)
-    for k in range(100, 0, -10):
+    #print (chart_print)
+    for k in range(100, -10, -10):
         percentage = f"{k:3}|"
-        if food_percent >= k:
-            percentage += " o"
+        if c1_percent >= k:
+            if c1_percent >= k and c1_percent > k - 10:
+                percentage += " o  "
 
         else:
-            percentage += "  "
+            percentage += "    "
 
-        if clothing_percent >= k:
-            percentage += "  o"
-
-        else:
-            percentage += "  "
-
-        if auto_percent >= k:
-            percentage += "  o"
+        if c2_percent >= k and c2_percent > k - 10:
+            percentage += "o  "
 
         else:
-            percentage += "  "
+            percentage += "   "
 
-        percentage_col = percentage
-        print(percentage_col)
+        if c3_percent >= k and c3_percent > k - 10:
+            percentage += "o  "
+
+        else:
+            percentage += "   "
+
+        percentage_col += "\n" + percentage
         
 
+    return(title + percentage_col + "\n" + horiz_bar + "\n" + output.rstrip("\n"))
 
-    print(horiz_bar + "\n" + output)
+    
 
 
 
